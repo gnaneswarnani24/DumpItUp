@@ -1,0 +1,225 @@
+import React, { useState, useEffect } from "react";
+import { User, Reward } from "@/entities/all";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Gift, Star, Trophy, Crown, Zap } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function Rewards() {
+  const [user, setUser] = useState(null);
+  const [rewards, setRewards] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadRewardsData();
+  }, []);
+
+  const loadRewardsData = async () => {
+    try {
+      const currentUser = await User.me();
+      setUser(currentUser);
+
+      const availableRewards = await Reward.filter({ is_active: true });
+      setRewards(availableRewards);
+    } catch (error) {
+      console.error("Error loading rewards:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const userPoints = user?.total_points || 0;
+
+  const canRedeem = (pointsRequired) => userPoints >= pointsRequired;
+
+  const achievements = [
+    { title: "First Pickup", icon: "🎯", description: "Complete your first pickup", unlocked: true },
+    { title: "Eco Warrior", icon: "⚔️", description: "Recycle 10kg of waste", unlocked: true },
+    { title: "Point Master", icon: "💎", description: "Earn 1000 points", unlocked: userPoints >= 1000 },
+    { title: "Green Guardian", icon: "🛡️", description: "30-day recycling streak", unlocked: false }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-gray-200 rounded-2xl"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-48 bg-gray-200 rounded-xl"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Rewards Center</h1>
+          <p className="text-gray-600 mt-1">Redeem your eco-points for amazing rewards!</p>
+        </div>
+        
+        <Card className="eco-gradient border-0 text-white">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <Gift className="w-8 h-8 mx-auto mb-2" />
+              <p className="text-white/80 text-sm">Your Points</p>
+              <p className="text-3xl font-bold">{userPoints}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="vouchers" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 bg-emerald-50">
+          <TabsTrigger value="vouchers" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            Vouchers & Rewards
+          </TabsTrigger>
+          <TabsTrigger value="achievements" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            Achievements
+          </TabsTrigger>
+          <TabsTrigger value="leaderboard" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            Leaderboard
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="vouchers" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {rewards.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <div className="text-6xl mb-4">🎁</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">More Rewards Coming Soon!</h3>
+                <p className="text-gray-600">Keep recycling to unlock amazing rewards</p>
+              </div>
+            ) : (
+              rewards.map((reward, index) => (
+                <motion.div
+                  key={reward.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className={`glass-effect border-0 hover:shadow-lg transition-all duration-300 ${
+                    canRedeem(reward.points_required) ? 'hover:scale-105' : 'opacity-75'
+                  }`}>
+                    <CardContent className="p-6">
+                      <div className="text-center space-y-4">
+                        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-2xl">
+                          🎁
+                        </div>
+                        
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{reward.title}</h3>
+                          <p className="text-sm text-gray-600 mt-1">{reward.description}</p>
+                          {reward.brand_partner && (
+                            <Badge variant="outline" className="mt-2">
+                              {reward.brand_partner}
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-center gap-2">
+                            <Star className="w-4 h-4 text-amber-500" />
+                            <span className="font-medium">{reward.points_required} points</span>
+                          </div>
+                          
+                          <Button
+                            className={`w-full ${
+                              canRedeem(reward.points_required)
+                                ? 'eco-gradient hover:shadow-lg'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                            disabled={!canRedeem(reward.points_required)}
+                          >
+                            {canRedeem(reward.points_required) ? 'Redeem Now' : 'Not Enough Points'}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="achievements" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {achievements.map((achievement, index) => (
+              <motion.div
+                key={achievement.title}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className={`glass-effect border-0 ${
+                  achievement.unlocked ? 'bg-emerald-50 border-emerald-200' : 'opacity-60'
+                }`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`text-4xl ${achievement.unlocked ? 'grayscale-0' : 'grayscale'}`}>
+                        {achievement.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
+                          {achievement.unlocked && (
+                            <Badge className="bg-emerald-500 text-white">
+                              <Crown className="w-3 h-3 mr-1" />
+                              Unlocked
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">{achievement.description}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="leaderboard" className="space-y-6">
+          <Card className="glass-effect border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                Community Leaders
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🏆</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Leaderboard Coming Soon!</h3>
+                <p className="text-gray-600">Compete with other eco-warriors in your city</p>
+                <div className="mt-6 space-y-2">
+                  <div className="text-2xl">🥇 Top Recycler</div>
+                  <div className="text-xl">🥈 Eco Champion</div>
+                  <div className="text-lg">🥉 Green Hero</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="text-center py-8 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-3xl border border-emerald-200"
+      >
+        <div className="text-4xl mb-4 mascot-bounce">🐕</div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Keep Going, Eco-Warrior!</h3>
+        <p className="text-gray-600">Every point you earn makes our planet cleaner and happier!</p>
+      </motion.div>
+    </div>
+  );
+}

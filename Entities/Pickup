@@ -1,0 +1,137 @@
+{
+  "name": "Pickup",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who scheduled the pickup"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "User's full name for the pickup"
+    },
+    "phone_number": {
+      "type": "string",
+      "description": "User's phone number for the pickup"
+    },
+    "address_details": {
+      "type": "object",
+      "properties": {
+        "flat_house_no": {
+          "type": "string"
+        },
+        "street_area_locality": {
+          "type": "string"
+        },
+        "town_city": {
+          "type": "string"
+        }
+      },
+      "description": "Detailed pickup address"
+    },
+    "pickup_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "pickup_time_slot": {
+      "type": "string",
+      "enum": [
+        "9-12 AM",
+        "12-3 PM",
+        "3-6 PM",
+        "6-9 PM",
+        "Flexible"
+      ]
+    },
+    "waste_items": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Selected waste categories as strings, e.g., ['Paper & Cardboard', 'Plastic Bottles']"
+    },
+    "approximate_weight_range": {
+      "type": "string",
+      "enum": [
+        "0-2 kgs",
+        "2-5 kgs",
+        "5-10 kgs",
+        "10+ kgs"
+      ]
+    },
+    "special_instructions": {
+      "type": "string"
+    },
+    "choice_type": {
+      "type": "string",
+      "enum": [
+        "earn",
+        "donate"
+      ],
+      "description": "Whether user wants to earn money or donate for points (can be optional here and set later)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "assigned",
+        "completed",
+        "cancelled",
+        "missed"
+      ],
+      "default": "scheduled"
+    },
+    "actual_weight": {
+      "type": "number",
+      "description": "Actual weight collected"
+    },
+    "actual_value": {
+      "type": "number",
+      "description": "Actual value calculated"
+    },
+    "points_earned": {
+      "type": "number",
+      "description": "Points earned if donated"
+    },
+    "money_earned": {
+      "type": "number",
+      "description": "Money earned if sold"
+    },
+    "pickup_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gps_coordinates": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        }
+      }
+    },
+    "assigned_agent_id": {
+      "type": "string",
+      "description": "ID of the agent assigned to this pickup"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Notes added by an admin regarding this pickup"
+    }
+  },
+  "required": [
+    "user_id",
+    "full_name",
+    "phone_number",
+    "address_details",
+    "pickup_date",
+    "pickup_time_slot",
+    "waste_items",
+    "approximate_weight_range"
+  ]
+}

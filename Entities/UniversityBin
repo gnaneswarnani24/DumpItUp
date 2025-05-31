@@ -1,0 +1,47 @@
+{
+  "name": "UniversityBin",
+  "type": "object",
+  "properties": {
+    "university_name": {
+      "type": "string"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "e.g., Main Library, Canteen Block A"
+    },
+    "qr_code": {
+      "type": "string",
+      "description": "Unique QR code for this bin"
+    },
+    "coordinates": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        }
+      }
+    },
+    "last_emptied": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fill_level": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Fill percentage"
+    },
+    "total_contributions": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "university_name",
+    "location_name",
+    "qr_code"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "WaitlistEntry",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address of the user joining the waitlist"
+    }
+  },
+  "required": [
+    "email"
+  ]
+}

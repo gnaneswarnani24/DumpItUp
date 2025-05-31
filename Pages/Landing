@@ -1,0 +1,883 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Link, useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { WaitlistEntry } from '@/entities/WaitlistEntry';
+import { Calendar, Truck, Gift, MapPin, CheckCircle, ShieldCheck, BarChart, Award, Trash2, Sparkles, Zap } from 'lucide-react';
+import FeatureHighlight from '../components/landing/FeatureHighlight';
+import HowItWorksStep from '../components/landing/HowItWorksStep';
+import CampusLeaderboardItem from '../components/landing/CampusLeaderboardItem';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Enhanced Animated Mascot Component with more dynamic animations
+const AnimatedMascot = () => (
+  <motion.div 
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.8, ease: "easeOut" }}
+    className="relative flex items-center justify-center mb-12"
+  >
+    <div className="relative">
+      {/* Enhanced floating elements around mascot */}
+      <motion.div 
+        className="absolute -top-8 -right-12 w-16 h-16 bg-yellow-300 rounded-full opacity-60"
+        animate={{ 
+          y: [0, -20, 0],
+          scale: [1, 1.2, 1],
+          opacity: [0.6, 0.8, 0.6]
+        }}
+        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+      />
+      <motion.div 
+        className="absolute -bottom-6 -left-8 w-12 h-12 bg-emerald-300 rounded-full opacity-50"
+        animate={{ 
+          y: [0, -15, 0],
+          x: [0, 5, 0],
+          scale: [1, 0.9, 1]
+        }}
+        transition={{ repeat: Infinity, duration: 4, delay: 0.5 }}
+      />
+      <motion.div 
+        className="absolute top-4 -left-16 w-8 h-8 bg-blue-300 rounded-full opacity-40"
+        animate={{ 
+          scale: [1, 1.5, 1],
+          opacity: [0.4, 0.7, 0.4],
+          rotate: [0, 180, 360]
+        }}
+        transition={{ repeat: Infinity, duration: 2.5 }}
+      />
+      
+      {/* Main mascot with enhanced animations */}
+      <motion.div 
+        className="relative z-10 p-8 bg-white rounded-3xl shadow-2xl border-4 border-emerald-200"
+        whileHover={{ scale: 1.05, rotate: 2 }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <motion.div 
+          className="text-8xl mb-4"
+          animate={{ 
+            y: [0, -10, 0],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        >
+          🐕
+        </motion.div>
+        <motion.div 
+          className="text-6xl mb-4"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+        >
+          ♻️
+        </motion.div>
+        <motion.div 
+          className="absolute -top-2 -right-2 text-3xl"
+          animate={{ 
+            scale: [1, 1.3, 1],
+            rotate: [0, 15, -15, 0]
+          }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          ✨
+        </motion.div>
+        <motion.div 
+          className="absolute -bottom-2 -left-2 text-3xl"
+          animate={{ 
+            y: [0, -8, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ repeat: Infinity, duration: 2.5, delay: 0.8 }}
+        >
+          💚
+        </motion.div>
+      </motion.div>
+      
+      {/* Enhanced speech bubble with typing animation */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.8, x: 20 }}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        transition={{ delay: 1.2, duration: 0.6 }}
+        className="absolute -right-24 top-8 bg-emerald-500 text-white p-4 rounded-2xl rounded-br-none max-w-xs"
+      >
+        <motion.p 
+          className="text-sm font-medium"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.8, duration: 0.8 }}
+        >
+          "Woof! Ready to save the planet together? Let's turn waste into wonder! 🌍"
+        </motion.p>
+        <div className="absolute -bottom-2 right-8 w-0 h-0 border-l-8 border-l-emerald-500 border-t-8 border-t-transparent border-b-8 border-b-transparent"></div>
+      </motion.div>
+    </div>
+  </motion.div>
+);
+
+// Enhanced Hero Interactive Logo with advanced animations
+const HeroInteractiveLogo = () => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const logoVariants = {
+    hidden: { opacity: 0, y: -30, scale: 0.8 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        delay: i * 0.08,
+        type: "spring",
+        stiffness: 120,
+        damping: 12,
+      },
+    }),
+    hover: {
+      y: -8,
+      scale: 1.1,
+      transition: { type: "spring", stiffness: 400, damping: 17 }
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.8, 
+        ease: "easeOut", 
+        delay: 1.2 
+      }
+    },
+  };
+  
+  const puppyVariants = {
+    hidden: { scale: 0, rotate: -180, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      rotate: 0,
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 200, 
+        damping: 15, 
+        delay: 1.6 
+      }
+    },
+  };
+
+  const floatingVariants = {
+    animate: {
+      y: [0, -20, 0],
+      rotate: [0, 5, -5, 0],
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  return (
+    <div className="relative flex flex-col items-center justify-center text-center py-10 overflow-hidden">
+      {/* Background animated elements */}
+      <motion.div 
+        className="absolute top-10 left-5 w-12 h-12 bg-yellow-300 rounded-full opacity-20"
+        variants={floatingVariants}
+        animate="animate"
+      />
+      <motion.div 
+        className="absolute bottom-20 right-5 w-16 h-16 bg-blue-300 rounded-full opacity-20"
+        variants={floatingVariants}
+        animate="animate"
+        transition={{ delay: 1 }}
+      />
+      <motion.div 
+        className="absolute top-1/2 left-10 w-8 h-8 bg-emerald-300 rounded-full opacity-15"
+        variants={floatingVariants}
+        animate="animate"
+        transition={{ delay: 2 }}
+      />
+
+      {/* Enhanced Logo Animation */}
+      <motion.div 
+        className="relative mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+      >
+        <motion.div className="relative">
+          <span className="text-7xl md:text-8xl font-bold tracking-tight block">
+            {"Dump".split("").map((char, i) => (
+              <motion.span 
+                key={i} 
+                variants={logoVariants} 
+                custom={i} 
+                animate={isHovered ? "hover" : "visible"}
+                className="inline-block text-emerald-500 cursor-pointer"
+                whileHover={{ 
+                  color: "#10b981",
+                  textShadow: "0 0 20px rgba(16, 185, 129, 0.5)"
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+            <motion.span 
+              variants={logoVariants} 
+              custom={4} 
+              animate={isHovered ? "hover" : "visible"}
+              className="inline-block text-yellow-400 cursor-pointer relative"
+              whileHover={{ 
+                color: "#fbbf24",
+                textShadow: "0 0 20px rgba(251, 191, 36, 0.5)"
+              }}
+            >
+              It
+              <motion.div
+                className="absolute -top-2 -right-2"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 180, 360]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <Sparkles className="w-4 h-4 text-yellow-300" />
+              </motion.div>
+            </motion.span>
+            {"Up".split("").map((char, i) => (
+              <motion.span 
+                key={i} 
+                variants={logoVariants} 
+                custom={5+i} 
+                animate={isHovered ? "hover" : "visible"}
+                className="inline-block text-emerald-500 cursor-pointer"
+                whileHover={{ 
+                  color: "#10b981",
+                  textShadow: "0 0 20px rgba(16, 185, 129, 0.5)"
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+          </span>
+          
+          {/* Enhanced Trash Icon with complex animation */}
+          <motion.div 
+            className="absolute -top-8 -right-8 text-5xl md:text-6xl"
+            initial={{ opacity: 0, scale: 0, rotate: -90 }}
+            animate={{ opacity: 1, scale: 1, rotate: -15 }}
+            transition={{ delay: 1.4, type: "spring", stiffness: 200 }}
+            whileHover={{ 
+              scale: 1.2,
+              rotate: 15,
+              transition: { type: "spring", stiffness: 300 }
+            }}
+          >
+            <motion.div
+              animate={{ 
+                y: [0, -5, 0],
+                rotate: [-15, -10, -15]
+              }}
+              transition={{ 
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <Trash2 className="w-16 h-16 text-emerald-300 opacity-70 drop-shadow-lg" />
+            </motion.div>
+          </motion.div>
+
+          {/* Lightning effects */}
+          <motion.div
+            className="absolute -top-4 left-1/2 transform -translate-x-1/2"
+            animate={{ 
+              opacity: [0, 1, 0],
+              scale: [0.8, 1.2, 0.8]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              delay: 3
+            }}
+          >
+            <Zap className="w-6 h-6 text-yellow-400" />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* Enhanced Title with gradient text */}
+      <motion.h3 
+        variants={textVariants}
+        initial="hidden"
+        animate="visible"
+        className="text-3xl font-semibold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-6"
+      >
+        Meet Your Eco-Buddy!
+      </motion.h3>
+
+      {/* Enhanced Puppy Animation */}
+      <motion.div 
+        variants={puppyVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative"
+        whileHover={{ scale: 1.05 }}
+      >
+        <motion.div 
+          className="text-8xl p-4 bg-white/50 rounded-full shadow-lg backdrop-blur-sm border-4 border-emerald-100"
+          animate={{ 
+            boxShadow: [
+              "0 10px 30px rgba(16, 185, 129, 0.1)",
+              "0 10px 40px rgba(16, 185, 129, 0.2)",
+              "0 10px 30px rgba(16, 185, 129, 0.1)"
+            ]
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+        >
+          <motion.span
+            animate={{ 
+              rotate: [0, 5, -5, 0],
+              scale: [1, 1.05, 1]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            🐕
+          </motion.span>
+        </motion.div>
+        
+        {/* Enhanced Speech Bubble */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 2.2, duration: 0.6, type: "spring" }}
+          className="absolute -bottom-4 -right-4 bg-emerald-500 text-white p-3 rounded-xl shadow-lg text-xs max-w-[200px]"
+          whileHover={{ scale: 1.05 }}
+        >
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2.8, duration: 0.8 }}
+          >
+            Woof! Let's recycle! 🌟
+          </motion.span>
+          <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-emerald-500"></div>
+        </motion.div>
+
+        {/* Floating hearts around puppy */}
+        <motion.div
+          className="absolute -top-2 -left-2 text-red-400"
+          animate={{ 
+            y: [0, -20, 0],
+            opacity: [0.5, 1, 0.5],
+            scale: [0.8, 1.2, 0.8]
+          }}
+          transition={{ 
+            duration: 2.5,
+            repeat: Infinity,
+            delay: 3
+          }}
+        >
+          💚
+        </motion.div>
+      </motion.div>
+      
+      {/* Enhanced Description */}
+      <motion.p 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2.6, duration: 0.8, ease: "easeOut" }}
+        className="text-md text-gray-600 mt-8 max-w-xs leading-relaxed"
+      >
+        I'll remind you monthly & celebrate every donation! Together, we make a{" "}
+        <motion.span 
+          className="font-bold text-emerald-600"
+          animate={{ 
+            textShadow: [
+              "0 0 0px rgba(16, 185, 129, 0)",
+              "0 0 10px rgba(16, 185, 129, 0.5)",
+              "0 0 0px rgba(16, 185, 129, 0)"
+            ]
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          HUGE
+        </motion.span>{" "}
+        impact!
+      </motion.p>
+    </div>
+  );
+};
+
+export default function LandingPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [isWaitlistJoined, setIsWaitlistJoined] = useState(false);
+  const [waitlistError, setWaitlistError] = useState('');
+
+  const handleJoinWaitlist = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setWaitlistError('Please enter your email.');
+      return;
+    }
+    setWaitlistError('');
+    try {
+      await WaitlistEntry.create({ email });
+      setIsWaitlistJoined(true);
+    } catch (error) {
+      console.error("Failed to join waitlist:", error);
+      setWaitlistError('Failed to join. Please try again.');
+    }
+  };
+
+  return (
+    <div className="bg-gradient-to-b from-emerald-50 via-white to-orange-50 min-h-screen">
+      {/* Enhanced Header with animations */}
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="py-6 px-4 md:px-8 flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100"
+      >
+        <Link to={createPageUrl("Landing")} className="flex items-center gap-2">
+          <motion.span 
+            className="text-3xl"
+            animate={{ 
+              rotate: [0, 10, -10, 0],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            🐕
+          </motion.span>
+          <motion.h1 
+            className="text-2xl font-bold text-emerald-600"
+            whileHover={{ scale: 1.05 }}
+          >
+            DumpItUp
+          </motion.h1>
+        </Link>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Button 
+            onClick={() => navigate(createPageUrl('Dashboard'))} 
+            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            Get Started
+          </Button>
+        </motion.div>
+      </motion.header>
+
+      {/* Enhanced Hero Section */}
+      <section className="py-16 md:py-24 px-4 md:px-8">
+        <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-center md:text-left"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Badge className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200">
+                Making recycling emotional & rewarding
+              </Badge>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="text-4xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight"
+            >
+              Turn Your Waste{" "}
+              <motion.span 
+                className="text-emerald-500 relative"
+                animate={{ 
+                  textShadow: [
+                    "0 0 0px rgba(16, 185, 129, 0)",
+                    "0 0 20px rgba(16, 185, 129, 0.3)",
+                    "0 0 0px rgba(16, 185, 129, 0)"
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                Into Wonder
+                <motion.div
+                  className="absolute -top-2 -right-6"
+                  animate={{ 
+                    rotate: 360,
+                    scale: [1, 1.2, 1]
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  ✨
+                </motion.div>
+              </motion.span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+              className="text-lg text-gray-600 mb-8"
+            >
+              Doorstep pickup, transparent rewards, and a lovable mascot who makes recycling fun. Choose to earn money or donate for good — either way, you're making an impact! 🌍
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1, duration: 0.6 }}
+              className="flex flex-col sm:flex-row gap-4 mb-8 justify-center md:justify-start"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  size="lg" 
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white text-base py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-300"
+                  onClick={() => navigate(createPageUrl('SchedulePickup'))}
+                >
+                  <Calendar className="w-5 h-5 mr-2" /> Schedule Pickup
+                </Button>
+              </motion.div>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2, duration: 0.6 }}
+              className="flex flex-wrap gap-x-6 gap-y-3 justify-center md:justify-start"
+            >
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <FeatureHighlight text="GPS-verified pickup" />
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <FeatureHighlight text="Transparent pricing" />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <HeroInteractiveLogo />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Enhanced Animated Mascot Section */}
+      <motion.section 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="py-16 bg-gradient-to-br from-emerald-50 to-blue-50"
+      >
+        <div className="container mx-auto px-4 md:px-8 text-center">
+          <AnimatedMascot />
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            viewport={{ once: true }}
+            className="text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+          >
+            Your Eco-Journey Starts Here!
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            viewport={{ once: true }}
+            className="text-lg text-gray-600 max-w-2xl mx-auto"
+          >
+            Our playful mascot makes recycling fun and rewarding. Get reminded, celebrate milestones, and watch your impact grow with every pickup!
+          </motion.p>
+        </div>
+      </motion.section>
+
+      {/* Enhanced How It Works Section */}
+      <motion.section 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="py-16 md:py-24 bg-white"
+      >
+        <div className="container mx-auto px-4 md:px-8">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-4"
+          >
+            How DumpItUp Works
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            viewport={{ once: true }}
+            className="text-lg text-gray-600 text-center mb-12"
+          >
+            Three simple steps to turn your waste into wonder.
+          </motion.p>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { icon: Calendar, step: "1", title: "Schedule Pickup", description: "Open the app, select waste categories, and schedule a convenient pickup time. Our mascot will guide you through!" },
+              { icon: Truck, step: "2", title: "Doorstep Pickup", description: "Our verified collection partners pick up, weigh your recyclables, and provide GPS-tagged pickup verification." },
+              { icon: Gift, step: "3", title: "Get Rewarded", description: "Choose to earn money or donate for good! Receive rewards and watch your impact grow on the leaderboard." }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+              >
+                <HowItWorksStep 
+                  icon={item.icon} 
+                  stepNumber={item.step} 
+                  title={item.title} 
+                  description={item.description} 
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+      
+      {/* Enhanced Smart Campus Recycling Section */}
+      <motion.section 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="py-16 md:py-24 bg-white"
+      >
+        <div className="container mx-auto px-4 md:px-8 grid md:grid-cols-2 gap-12 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            <Badge className="mb-4 bg-purple-100 text-purple-700 border-purple-200">UNIVERSITY PROGRAM</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">Smart Campus Recycling</h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Drop collected waste beside regular dustbins. Scan, drop, and earn points for your college leaderboard. Make your campus the greenest!
+            </p>
+            <motion.ul 
+              className="space-y-3 text-gray-700"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              {[
+                { icon: BarChart, text: "Campus Leaderboards", color: "text-purple-500" },
+                { icon: MapPin, text: "Smart Sorting Bins", color: "text-purple-500" },
+                { icon: ShieldCheck, text: "Automated Tracking", color: "text-purple-500" },
+                { icon: Award, text: "Student Rewards", color: "text-purple-500" }
+              ].map((item, index) => (
+                <motion.li 
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="flex items-center gap-3"
+                  whileHover={{ x: 5 }}
+                >
+                  <item.icon className={`w-6 h-6 ${item.color}`} />
+                  {item.text}
+                </motion.li>
+              ))}
+            </motion.ul>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-2xl shadow-lg"
+          >
+            <h3 className="text-xl font-semibold text-gray-800 mb-6 text-center">Campus Leaderboard</h3>
+            <div className="space-y-3">
+              {[
+                { name: "Sarah M.", course: "Environmental Club", points: "2,340", rank: 1, avatarText: "SM" },
+                { name: "Alex R.", course: "Computer Science", points: "1,890", rank: 2, avatarText: "AR" },
+                { name: "Maya K.", course: "Business Studies", points: "1,650", rank: 3, avatarText: "MK" }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <CampusLeaderboardItem {...item} />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Enhanced Footer */}
+      <motion.footer 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="py-16 bg-gray-800 text-gray-300"
+      >
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="grid md:grid-cols-4 gap-8 mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <motion.span 
+                  className="text-3xl"
+                  animate={{ 
+                    rotate: [0, 5, -5, 0]
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  🐕
+                </motion.span>
+                <h1 className="text-2xl font-bold text-white">DumpItUp</h1>
+              </div>
+              <p className="text-sm text-gray-400">Making recycling emotional, easy, and impactful — one pickup, one donation, one smile at a time.</p>
+            </motion.div>
+
+            {/* Keep existing footer sections with enhanced animations */}
+            {[
+              {
+                title: "Platform",
+                links: [
+                  { text: "Schedule Pickup", to: createPageUrl("SchedulePickup") },
+                  { text: "Rewards Program", to: createPageUrl("Rewards") },
+                  { text: "Find Bins", to: createPageUrl("FindBins") },
+                  { text: "Community", to: createPageUrl("Community") }
+                ]
+              },
+              {
+                title: "Support", 
+                links: [
+                  { text: "Help Center", to: createPageUrl("ContactUs") },
+                  { text: "Contact Us", to: createPageUrl("ContactUs") },
+                  { text: "Partner With Us", to: "#" },
+                  { text: "Campus Program", to: "#" }
+                ]
+              },
+              {
+                title: "Company",
+                links: [
+                  { text: "About Us", to: "#" },
+                  { text: "Our Mission", to: "#" },
+                  { text: "Careers", to: "#" },
+                  { text: "Press Kit", to: "#" }
+                ]
+              }
+            ].map((section, sectionIndex) => (
+              <motion.div
+                key={sectionIndex}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: (sectionIndex + 1) * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <h5 className="font-semibold text-white mb-4">{section.title}</h5>
+                <ul className="space-y-2 text-sm">
+                  {section.links.map((link, linkIndex) => (
+                    <motion.li 
+                      key={linkIndex}
+                      whileHover={{ x: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <Link to={link.to} className="hover:text-emerald-400 transition-colors">
+                        {link.text}
+                      </Link>
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+          
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            viewport={{ once: true }}
+            className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center text-sm"
+          >
+            <p>&copy; {new Date().getFullYear()} DumpItUp. Making the world greener, one pickup at a time.</p>
+            <div className="flex gap-4 mt-4 md:mt-0">
+              {["Privacy", "Terms", "Cookies"].map((item, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <Link to="#" className="hover:text-emerald-400 transition-colors">{item}</Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </motion.footer>
+    </div>
+  );
+}

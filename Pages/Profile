@@ -1,0 +1,243 @@
+import React, { useState, useEffect } from "react";
+import { User } from "@/entities/all";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Edit, Save, User as UserIcon, Award, Settings } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function Profile() {
+  const [user, setUser] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const currentUser = await User.me();
+      setUser(currentUser);
+      setFormData({
+        phone: currentUser.phone || "",
+        address: currentUser.address || "",
+        university: currentUser.university || "",
+        preferred_pickup_time: currentUser.preferred_pickup_time || ""
+      });
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await User.updateMyUserData(formData);
+      await loadUserData();
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const getLevelInfo = (level) => {
+    const levels = {
+      "Beginner": { color: "bg-gray-100 text-gray-800", icon: "🌱" },
+      "Eco-Warrior": { color: "bg-green-100 text-green-800", icon: "⚔️" },
+      "Planet-Saver": { color: "bg-blue-100 text-blue-800", icon: "🌍" },
+      "Green-Guardian": { color: "bg-purple-100 text-purple-800", icon: "🛡️" }
+    };
+    return levels[level] || levels["Beginner"];
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-gray-200 rounded-2xl"></div>
+          <div className="h-96 bg-gray-200 rounded-2xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  const levelInfo = getLevelInfo(user?.eco_level);
+
+  return (
+    <div className="p-4 md:p-8 space-y-8 max-w-4xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center space-y-4"
+      >
+        <div className="w-24 h-24 mx-auto bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-white text-4xl shadow-lg">
+          {user?.full_name?.[0]?.toUpperCase() || "U"}
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{user?.full_name}</h1>
+          <p className="text-gray-600">{user?.email}</p>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <Badge className={`${levelInfo.color} border-0`}>
+              <span className="mr-1">{levelInfo.icon}</span>
+              {user?.eco_level || "Beginner"}
+            </Badge>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="glass-effect border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-emerald-600" />
+                Your Impact
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-emerald-50 rounded-xl">
+                  <p className="text-2xl font-bold text-emerald-600">{user?.total_points || 0}</p>
+                  <p className="text-sm text-gray-600">Total Points</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-xl">
+                  <p className="text-2xl font-bold text-green-600">₹{user?.total_earnings || 0}</p>
+                  <p className="text-sm text-gray-600">Money Earned</p>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-xl">
+                  <p className="text-2xl font-bold text-blue-600">{user?.recycling_streak || 0}</p>
+                  <p className="text-sm text-gray-600">Month Streak</p>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-xl">
+                  <p className="text-2xl font-bold text-purple-600">🌟</p>
+                  <p className="text-sm text-gray-600">Level Up!</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="glass-effect border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-emerald-600" />
+                  Profile Details
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+                  disabled={isSaving}
+                  className="border-emerald-200 hover:bg-emerald-50"
+                >
+                  {isEditing ? (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      {isSaving ? "Saving..." : "Save"}
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </>
+                  )}
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  disabled={!isEditing}
+                  placeholder="Enter your phone number"
+                  className="border-emerald-200 focus:border-emerald-300 disabled:bg-gray-50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  disabled={!isEditing}
+                  placeholder="Enter your address"
+                  className="border-emerald-200 focus:border-emerald-300 disabled:bg-gray-50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="university">University (Optional)</Label>
+                <Input
+                  id="university"
+                  value={formData.university}
+                  onChange={(e) => setFormData({...formData, university: e.target.value})}
+                  disabled={!isEditing}
+                  placeholder="Enter your university name"
+                  className="border-emerald-200 focus:border-emerald-300 disabled:bg-gray-50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Preferred Pickup Time</Label>
+                <Select
+                  value={formData.preferred_pickup_time}
+                  onValueChange={(value) => setFormData({...formData, preferred_pickup_time: value})}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="border-emerald-200 focus:border-emerald-300 disabled:bg-gray-50">
+                    <SelectValue placeholder="Select preferred time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="9-12 AM">9-12 AM</SelectItem>
+                    <SelectItem value="12-3 PM">12-3 PM</SelectItem>
+                    <SelectItem value="3-6 PM">3-6 PM</SelectItem>
+                    <SelectItem value="6-9 PM">6-9 PM</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="text-center py-8 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-3xl border border-emerald-200"
+      >
+        <div className="text-4xl mb-4 mascot-bounce">🐕</div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">
+          Keep up the amazing work, {user?.full_name?.split(' ')[0]}!
+        </h3>
+        <p className="text-gray-600">
+          Your contribution is making the world a cleaner, happier place! 🌍💚
+        </p>
+      </motion.div>
+    </div>
+  );
+}

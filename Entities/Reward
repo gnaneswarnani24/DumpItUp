@@ -1,0 +1,46 @@
+{
+  "name": "Reward",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "points_required": {
+      "type": "number"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "voucher",
+        "badge",
+        "certificate",
+        "physical_item"
+      ]
+    },
+    "brand_partner": {
+      "type": "string"
+    },
+    "voucher_code": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "points_required",
+    "reward_type"
+  ]
+}

@@ -1,0 +1,223 @@
+
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { X, Calendar, Clock, MapPin, Package, Phone, User, Navigation } from "lucide-react";
+import { format } from "date-fns";
+import { motion } from "framer-motion";
+
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default Leaflet marker icon (if not already globally fixed)
+if (L.Icon.Default.prototype._getIconUrl) {
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+}
+
+
+const statusColors = {
+  scheduled: "bg-blue-100 text-blue-800",
+  in_progress: "bg-yellow-100 text-yellow-800",
+  completed: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-800"
+};
+
+export default function PickupDetailModal({ pickup, onClose }) {
+  const hasGpsCoordinates = pickup.gps_coordinates && pickup.gps_coordinates.latitude && pickup.gps_coordinates.longitude;
+  const mapPosition = hasGpsCoordinates ? [pickup.gps_coordinates.latitude, pickup.gps_coordinates.longitude] : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]" // Increased z-index
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10"> {/* Ensure header is above map */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Pickup Details #{pickup.id?.slice(-6) || 'N/A'}
+              </h2>
+              <Badge className={`${statusColors[pickup.status]} mt-2`}>
+                {pickup.status.replace('_', ' ')}
+              </Badge>
+            </div>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Contact Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-emerald-600" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-3">
+                <User className="w-4 h-4 text-gray-400" />
+                <span>{pickup.full_name}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-gray-400" />
+                <span>{pickup.phone_number}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Schedule Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-emerald-600" />
+                Schedule
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span>{format(new Date(pickup.pickup_date), 'EEEE, MMMM d, yyyy')}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span>{pickup.pickup_time_slot}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Address Information & Map */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-emerald-600" />
+                Pickup Location
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-gray-700 mb-4">
+                <p>{pickup.address_details?.flat_house_no}</p>
+                <p>{pickup.address_details?.street_area_locality}</p>
+                <p>{pickup.address_details?.town_city}</p>
+              </div>
+              {mapPosition && (
+                <>
+                <div className="h-64 w-full rounded-lg overflow-hidden border border-gray-300 mt-4 z-0"> {/* Ensure map is not overlapping */}
+                  <MapContainer center={mapPosition} zoom={15} style={{ height: '100%', width: '100%' }}>
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    <Marker position={mapPosition}>
+                      <Popup>Pickup Location</Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2 w-full"
+                    onClick={() => window.open(`https://www.google.com/maps?q=${mapPosition[0]},${mapPosition[1]}`, "_blank")}
+                  >
+                    <Navigation className="w-4 h-4 mr-2" /> Open in Maps
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Waste Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-emerald-600" />
+                Waste Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Categories:</p>
+                <div className="flex flex-wrap gap-2">
+                  {pickup.waste_items?.map((item, index) => (
+                    <Badge key={index} variant="outline" className="bg-emerald-50 text-emerald-700">
+                      {item}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Approximate Weight:</p>
+                <p className="text-gray-600">{pickup.approximate_weight_range}</p>
+              </div>
+              {pickup.actual_weight && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Actual Weight:</p>
+                  <p className="text-gray-600">{pickup.actual_weight} kg</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Special Instructions */}
+          {pickup.special_instructions && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Special Instructions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700">{pickup.special_instructions}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Reward Information */}
+          {pickup.status === 'completed' && (
+            <Card className="bg-emerald-50 border-emerald-200">
+              <CardHeader>
+                <CardTitle className="text-emerald-700">Reward Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Choice Type:</span>
+                    <span className="font-medium">
+                      {pickup.choice_type === 'donate' ? 'Donated for Points' : 'Earned Money'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Reward:</span>
+                    <span className="font-bold text-emerald-600">
+                      {pickup.choice_type === 'donate' 
+                        ? `+${pickup.points_earned || 0} points`
+                        : `₹${pickup.money_earned || 0}`
+                      }
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}

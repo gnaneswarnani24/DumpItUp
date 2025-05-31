@@ -1,0 +1,48 @@
+{
+  "name": "Agent",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Full name of the pickup agent"
+    },
+    "phone_number": {
+      "type": "string",
+      "description": "Contact phone number for the agent"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address for the agent"
+    },
+    "zone": {
+      "type": "string",
+      "description": "Operational zone or area assigned to the agent (e.g., city, pin code area)"
+    },
+    "vehicle_details": {
+      "type": "string",
+      "description": "Details of the agent's vehicle (e.g., 'Bike - DL01AB1234')"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the agent is currently active"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Average rating of the agent based on user feedback"
+    },
+    "total_pickups_completed": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "full_name",
+    "phone_number",
+    "email",
+    "zone"
+  ]
+}

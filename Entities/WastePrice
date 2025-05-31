@@ -1,0 +1,28 @@
+{
+  "name": "WastePrice",
+  "type": "object",
+  "properties": {
+    "category_name": {
+      "type": "string",
+      "description": "Name of the waste category (e.g., Paper & Cardboard, Plastic Bottles)"
+    },
+    "price_per_kg": {
+      "type": "number",
+      "description": "Current market price per kilogram for this category"
+    },
+    "unit": {
+      "type": "string",
+      "default": "INR",
+      "description": "Currency unit for the price"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this price was last updated"
+    }
+  },
+  "required": [
+    "category_name",
+    "price_per_kg"
+  ]
+}

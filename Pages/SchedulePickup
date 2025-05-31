@@ -1,0 +1,287 @@
+import React, { useState, useEffect } from "react";
+import { User, Pickup } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Plus, Eye, X, Calendar, Clock, MapPin, Package } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { format } from "date-fns";
+
+import NewPickupForm from "../components/pickup/NewPickupForm";
+import PickupDetailModal from "../components/pickup/PickupDetailModal";
+
+const statusColors = {
+  scheduled: "bg-blue-100 text-blue-800",
+  in_progress: "bg-yellow-100 text-yellow-800", 
+  completed: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-800"
+};
+
+const statusIcons = {
+  scheduled: Calendar,
+  in_progress: Clock,
+  completed: Package,
+  cancelled: X
+};
+
+export default function SchedulePickup() {
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [pickups, setPickups] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showNewPickup, setShowNewPickup] = useState(false);
+  const [selectedPickup, setSelectedPickup] = useState(null);
+  const [activeTab, setActiveTab] = useState("new");
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const user = await User.me();
+      setCurrentUser(user);
+      
+      const userPickups = await Pickup.filter({ user_id: user.id }, '-pickup_date');
+      setPickups(userPickups);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelPickup = async (pickupId) => {
+    if (!confirm("Are you sure you want to cancel this pickup?")) return;
+    
+    try {
+      await Pickup.update(pickupId, { status: 'cancelled' });
+      await loadData();
+    } catch (error) {
+      console.error("Error cancelling pickup:", error);
+      alert("Failed to cancel pickup. Please try again.");
+    }
+  };
+
+  const ongoingPickups = pickups.filter(p => ['scheduled', 'in_progress'].includes(p.status));
+  const completedPickups = pickups.filter(p => p.status === 'completed');
+
+  const PickupCard = ({ pickup, showActions = true }) => {
+    const StatusIcon = statusIcons[pickup.status];
+    
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300"
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+              <StatusIcon className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">
+                Pickup #{pickup.id?.slice(-6) || 'N/A'}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-600">
+                  {format(new Date(pickup.pickup_date), 'MMM d, yyyy')} • {pickup.pickup_time_slot}
+                </span>
+              </div>
+            </div>
+          </div>
+          <Badge className={statusColors[pickup.status]}>
+            {pickup.status.replace('_', ' ')}
+          </Badge>
+        </div>
+
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-600">
+              {pickup.address_details?.street_area_locality}, {pickup.address_details?.town_city}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-600">
+              {pickup.waste_items?.length || 0} item categories • {pickup.approximate_weight_range}
+            </span>
+          </div>
+        </div>
+
+        {showActions && (
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedPickup(pickup)}
+              className="flex-1"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              View Details
+            </Button>
+            {pickup.status === 'scheduled' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleCancelPickup(pickup.id)}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+            )}
+          </div>
+        )}
+
+        {pickup.status === 'completed' && (
+          <div className="mt-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-emerald-700">
+                {pickup.choice_type === 'donate' ? 'Points Earned:' : 'Money Earned:'}
+              </span>
+              <span className="font-bold text-emerald-600">
+                {pickup.choice_type === 'donate' 
+                  ? `+${pickup.points_earned || 0} points`
+                  : `₹${pickup.money_earned || 0}`
+                }
+              </span>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-gray-200 rounded-2xl"></div>
+          <div className="h-96 bg-gray-200 rounded-2xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-8 space-y-8 max-w-6xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Pickup Management</h1>
+          <p className="text-gray-600 mt-1">Manage your recycling pickups and track your impact</p>
+        </div>
+        <div className="text-4xl mascot-bounce">🐕</div>
+      </motion.div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 bg-emerald-50">
+          <TabsTrigger value="new" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <Plus className="w-4 h-4 mr-2" />
+            New Request
+          </TabsTrigger>
+          <TabsTrigger value="ongoing" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <Clock className="w-4 h-4 mr-2" />
+            Ongoing ({ongoingPickups.length})
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <Package className="w-4 h-4 mr-2" />
+            Completed ({completedPickups.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="new" className="space-y-6">
+          <Card className="glass-effect border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-emerald-600" />
+                Request New Pickup
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => setShowNewPickup(true)}
+                size="lg"
+                className="w-full md:w-auto eco-gradient hover:shadow-lg"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Schedule New Pickup
+              </Button>
+              <p className="text-gray-600 text-sm mt-4">
+                Ready to make an impact? Schedule a pickup and our eco-buddy will handle the rest! 🌍
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ongoing" className="space-y-6">
+          {ongoingPickups.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🚛</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Ongoing Pickups</h3>
+              <p className="text-gray-600 mb-6">Schedule a pickup to get started on your eco journey!</p>
+              <Button onClick={() => setActiveTab("new")} className="eco-gradient">
+                Schedule First Pickup
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {ongoingPickups.map((pickup) => (
+                <PickupCard key={pickup.id} pickup={pickup} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-6">
+          {completedPickups.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📦</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Completed Pickups</h3>
+              <p className="text-gray-600">Your pickup history will appear here once completed.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {completedPickups.map((pickup) => (
+                <PickupCard key={pickup.id} pickup={pickup} showActions={false} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      <AnimatePresence>
+        {showNewPickup && (
+          <NewPickupForm
+            currentUser={currentUser}
+            onClose={() => setShowNewPickup(false)}
+            onSuccess={() => {
+              setShowNewPickup(false);
+              loadData();
+              setActiveTab("ongoing");
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedPickup && (
+          <PickupDetailModal
+            pickup={selectedPickup}
+            onClose={() => setSelectedPickup(null)}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

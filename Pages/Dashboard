@@ -1,0 +1,159 @@
+import React, { useState, useEffect } from "react";
+import { User, Pickup, Contribution } from "@/entities/all";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Recycle, Gift, DollarSign, Trophy, TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
+
+import StatsCard from "../components/dashboard/StatsCard";
+import MascotMessage from "../components/dashboard/MascotMessage";
+import RecentPickups from "../components/dashboard/RecentPickups";
+import ImpactVisualization from "../components/dashboard/ImpactVisualization";
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [pickups, setPickups] = useState([]);
+  const [contributions, setContributions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      const currentUser = await User.me();
+      setUser(currentUser);
+
+      const userPickups = await Pickup.filter({ user_id: currentUser.id }, '-pickup_date', 5);
+      setPickups(userPickups);
+
+      const userContributions = await Contribution.filter({ user_id: currentUser.id });
+      setContributions(userContributions);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMascotAction = (action) => {
+    switch (action) {
+      case "Schedule Pickup":
+        navigate(createPageUrl("SchedulePickup"));
+        break;
+      case "View Rewards":
+        navigate(createPageUrl("Rewards"));
+        break;
+      case "See Impact":
+        // Scroll to impact section
+        document.getElementById('impact-section')?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      default:
+        break;
+    }
+  };
+
+  const completedPickups = pickups.filter(p => p.status === 'completed').length;
+  const totalWeight = contributions.reduce((sum, c) => sum + (c.weight || 0), 0);
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-gray-200 rounded-2xl"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+      >
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+            Welcome back, {user?.full_name?.split(' ')[0] || 'Eco-Warrior'}! 👋
+          </h1>
+          <p className="text-gray-600 mt-2">Ready to make the planet happier today?</p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-full border border-emerald-200">
+          <Trophy className="w-5 h-5 text-emerald-600" />
+          <span className="font-medium text-emerald-700">{user?.eco_level || 'Beginner'}</span>
+        </div>
+      </motion.div>
+
+      <MascotMessage 
+        userStreak={user?.recycling_streak || 0}
+        onActionClick={handleMascotAction}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatsCard
+          title="Total Points"
+          value={user?.total_points || 0}
+          icon={Gift}
+          gradient="bg-gradient-to-br from-purple-500 to-purple-600"
+          delay={0}
+        />
+        <StatsCard
+          title="Money Earned"
+          value={`₹${user?.total_earnings || 0}`}
+          icon={DollarSign}
+          gradient="bg-gradient-to-br from-green-500 to-green-600"
+          delay={0.1}
+        />
+        <StatsCard
+          title="Pickups Completed"
+          value={completedPickups}
+          icon={Recycle}
+          gradient="bg-gradient-to-br from-blue-500 to-blue-600"
+          delay={0.2}
+        />
+        <StatsCard
+          title="Recycling Streak"
+          value={user?.recycling_streak || 0}
+          unit="months"
+          icon={TrendingUp}
+          gradient="bg-gradient-to-br from-amber-500 to-amber-600"
+          delay={0.3}
+        />
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8">
+        <RecentPickups pickups={pickups} isLoading={false} />
+        <div id="impact-section">
+          <ImpactVisualization totalContributions={contributions} />
+        </div>
+      </div>
+
+      {user?.recycling_streak === 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center py-12 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-3xl border border-emerald-200"
+        >
+          <div className="text-6xl mb-4">🌟</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Start Your Eco Journey!</h3>
+          <p className="text-gray-600 mb-6">Schedule your first pickup and join thousands making a difference</p>
+          <button
+            onClick={() => navigate(createPageUrl("SchedulePickup"))}
+            className="px-8 py-3 eco-gradient text-white font-medium rounded-2xl hover:shadow-lg transition-all duration-300 hover:scale-105"
+          >
+            Schedule First Pickup 🚛
+          </button>
+        </motion.div>
+      )}
+    </div>
+  );
+}

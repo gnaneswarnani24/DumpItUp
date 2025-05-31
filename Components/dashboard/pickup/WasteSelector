@@ -1,0 +1,83 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { TreePine, Droplets, Wind } from "lucide-react";
+
+export default function ImpactVisualization({ totalContributions = [] }) {
+  const calculateImpact = () => {
+    return totalContributions.reduce((acc, contribution) => {
+      const impact = contribution.environmental_impact || {};
+      return {
+        co2_saved: acc.co2_saved + (impact.co2_saved || 0),
+        water_saved: acc.water_saved + (impact.water_saved || 0),
+        trees_saved: acc.trees_saved + (impact.trees_saved || 0)
+      };
+    }, { co2_saved: 0, water_saved: 0, trees_saved: 0 });
+  };
+
+  const impact = calculateImpact();
+
+  const impactStats = [
+    {
+      icon: Wind,
+      value: impact.co2_saved.toFixed(1),
+      unit: "kg CO₂",
+      label: "Carbon Saved",
+      gradient: "bg-gradient-to-br from-blue-500 to-blue-600"
+    },
+    {
+      icon: Droplets,
+      value: impact.water_saved.toFixed(0),
+      unit: "liters",
+      label: "Water Saved",
+      gradient: "bg-gradient-to-br from-cyan-500 to-cyan-600"
+    },
+    {
+      icon: TreePine,
+      value: impact.trees_saved.toFixed(2),
+      unit: "trees",
+      label: "Trees Equivalent",
+      gradient: "bg-gradient-to-br from-green-500 to-green-600"
+    }
+  ];
+
+  return (
+    <Card className="glass-effect border-0">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <span className="text-2xl">🌍</span>
+          Your Environmental Impact
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {impactStats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.2 }}
+              className="text-center p-4 bg-white rounded-xl border border-gray-100"
+            >
+              <div className={`w-12 h-12 mx-auto mb-3 ${stat.gradient} rounded-full flex items-center justify-center`}>
+                <stat.icon className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex items-baseline justify-center gap-1 mb-1">
+                <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
+                <span className="text-sm text-gray-500">{stat.unit}</span>
+              </div>
+              <p className="text-sm text-gray-600">{stat.label}</p>
+            </motion.div>
+          ))}
+        </div>
+        
+        {totalContributions.length === 0 && (
+          <div className="text-center py-6">
+            <div className="text-4xl mb-3">🌱</div>
+            <p className="text-gray-500">Start recycling to see your impact!</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

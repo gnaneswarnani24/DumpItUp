@@ -1,0 +1,173 @@
+
+import React, { useState, useEffect } from 'react';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import { User, Pickup, Reward, Agent, Contribution } from '@/entities/all';
+import { Link, useNavigate } from 'react-router-dom'; // Added Link import
+import { createPageUrl } from '@/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, Truck, Gift, UserCheck, BarChart3, Building } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+const StatCard = ({ title, value, icon: Icon, color }) => (
+  <Card className="shadow-lg hover:shadow-xl transition-shadow">
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+      <Icon className={`h-5 w-5 ${color || 'text-emerald-500'}`} />
+    </CardHeader>
+    <CardContent>
+      <div className="text-3xl font-bold text-gray-800">{value}</div>
+    </CardContent>
+  </Card>
+);
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalPickups: 0,
+    totalRewards: 0,
+    totalAgents: 0,
+    pickupsToday: 0,
+    completedPickups: 0,
+  });
+  const [pickupData, setPickupData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkUserRoleAndLoadData = async () => {
+      try {
+        const user = await User.me();
+        setCurrentUser(user);
+        if (user.role !== 'admin') {
+          navigate(createPageUrl('Dashboard'));
+          return;
+        }
+        fetchStats();
+      } catch (e) {
+        navigate(createPageUrl('Landing')); // Not logged in
+      }
+    };
+    checkUserRoleAndLoadData();
+  }, [navigate]);
+
+  const fetchStats = async () => {
+    setIsLoading(true);
+    try {
+      const [users, pickups, rewards, agents, contributions] = await Promise.all([
+        User.list(),
+        Pickup.list(),
+        Reward.list(),
+        Agent.list(),
+        Contribution.list()
+      ]);
+
+      const today = new Date().toISOString().split('T')[0];
+      const pickupsTodayCount = pickups.filter(p => p.pickup_date === today).length;
+      const completedPickupsCount = pickups.filter(p => p.status === 'completed').length;
+
+      setStats({
+        totalUsers: users.length,
+        totalPickups: pickups.length,
+        totalRewards: rewards.length,
+        totalAgents: agents.length,
+        pickupsToday: pickupsTodayCount,
+        completedPickups: completedPickupsCount,
+      });
+
+      // Aggregate pickup data for chart (example: pickups by status)
+      const statusCounts = pickups.reduce((acc, p) => {
+        acc[p.status] = (acc[p.status] || 0) + 1;
+        return acc;
+      }, {});
+      const chartData = Object.entries(statusCounts).map(([name, value]) => ({ name, count: value }));
+      setPickupData(chartData);
+
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+    }
+    setIsLoading(false);
+  };
+
+  if (isLoading || !currentUser) {
+    return (
+        <div className="flex h-screen">
+            <AdminSidebar />
+            <div className="flex-1 p-8 bg-gray-100 flex items-center justify-center">
+                <div className="text-xl font-semibold">Loading Admin Dashboard...</div>
+            </div>
+        </div>
+    );
+  }
+  
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <AdminSidebar />
+      <main className="flex-1 p-6 md:p-10">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {currentUser.full_name || currentUser.email}!</p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
+          <StatCard title="Total Users" value={stats.totalUsers} icon={Users} color="text-blue-500" />
+          <StatCard title="Total Pickups" value={stats.totalPickups} icon={Truck} color="text-orange-500" />
+          <StatCard title="Pickups Completed" value={stats.completedPickups} icon={UserCheck} color="text-green-500" />
+          <StatCard title="Available Rewards" value={stats.totalRewards} icon={Gift} color="text-purple-500" />
+          {/* <StatCard title="Registered Agents" value={stats.totalAgents} icon={Users} color="text-teal-500" /> */}
+          {/* <StatCard title="Pickups Today" value={stats.pickupsToday} icon={Calendar} color="text-red-500" /> */}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-emerald-500" />
+                Pickup Status Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={pickupData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <Tooltip contentStyle={{fontSize: 12, padding: '4px 8px'}}/>
+                  <Legend wrapperStyle={{fontSize: 12}}/>
+                  <Bar dataKey="count" fill="#34d399" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="w-5 h-5 text-indigo-500" />
+                Quick Links
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+                <Link to={createPageUrl("AdminUserManagement")} className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center">
+                    <Users className="w-8 h-8 mx-auto mb-2 text-blue-600"/>
+                    <p className="font-medium text-blue-700">Manage Users</p>
+                </Link>
+                <Link to={createPageUrl("AdminPickupManagement")} className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-center">
+                    <Truck className="w-8 h-8 mx-auto mb-2 text-orange-600"/>
+                    <p className="font-medium text-orange-700">Manage Pickups</p>
+                </Link>
+                 <Link to={createPageUrl("AdminRewardManagement")} className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-center">
+                    <Gift className="w-8 h-8 mx-auto mb-2 text-purple-600"/>
+                    <p className="font-medium text-purple-700">Manage Rewards</p>
+                </Link>
+                <div className="p-4 bg-gray-50 rounded-lg text-center opacity-50 cursor-not-allowed">
+                     <Users className="w-8 h-8 mx-auto mb-2 text-gray-600"/>
+                    <p className="font-medium text-gray-700">Manage Agents (Soon)</p>
+                </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}

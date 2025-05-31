@@ -1,0 +1,59 @@
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { Home, Users, Truck, Gift, Settings, BarChart3 } from 'lucide-react';
+
+const adminNavItems = [
+  { title: "Dashboard", href: createPageUrl("AdminDashboard"), icon: Home },
+  { title: "User Management", href: createPageUrl("AdminUserManagement"), icon: Users },
+  { title: "Pickup Management", href: createPageUrl("AdminPickupManagement"), icon: Truck },
+  { title: "Reward Management", href: createPageUrl("AdminRewardManagement"), icon: Gift },
+  // { title: "Agent Management", href: createPageUrl("AdminAgentManagement"), icon: UsersRound }, // Future
+  // { title: "Reports", href: createPageUrl("AdminReports"), icon: BarChart3 }, // Future
+  // { title: "Settings", href: createPageUrl("AdminSettings"), icon: Settings } // Future
+];
+
+export default function AdminSidebar() {
+  const location = useLocation();
+
+  return (
+    <div className="w-64 bg-gray-800 text-white h-screen p-4 flex flex-col">
+      <div className="mb-8">
+        <Link to={createPageUrl("AdminDashboard")} className="flex items-center gap-2 p-2">
+          <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+            <span className="text-xl font-bold">D</span>
+          </div>
+          <h1 className="text-xl font-bold">Admin Portal</h1>
+        </Link>
+      </div>
+      <nav className="flex-grow">
+        <ul className="space-y-2">
+          {adminNavItems.map((item) => (
+            <li key={item.title}>
+              <Link
+                to={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                  ${location.pathname === item.href 
+                    ? 'bg-emerald-600 text-white shadow-md' 
+                    : 'hover:bg-gray-700 hover:text-emerald-300'
+                  }`}
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.title}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="mt-auto pt-4 border-t border-gray-700">
+         <Link
+            to={createPageUrl("Dashboard")}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 hover:text-emerald-300 text-sm"
+          >
+            <Home className="w-4 h-4" />
+            <span>Back to Main App</span>
+          </Link>
+      </div>
+    </div>
+  );
+}

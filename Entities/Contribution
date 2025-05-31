@@ -1,0 +1,62 @@
+{
+  "name": "Contribution",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "bin_id": {
+      "type": "string",
+      "description": "University bin ID"
+    },
+    "pickup_id": {
+      "type": "string",
+      "description": "Pickup ID if from doorstep pickup"
+    },
+    "waste_category": {
+      "type": "string",
+      "enum": [
+        "plastic",
+        "paper",
+        "electronics",
+        "metal",
+        "glass",
+        "textiles"
+      ]
+    },
+    "weight": {
+      "type": "number"
+    },
+    "points_earned": {
+      "type": "number"
+    },
+    "environmental_impact": {
+      "type": "object",
+      "properties": {
+        "co2_saved": {
+          "type": "number"
+        },
+        "water_saved": {
+          "type": "number"
+        },
+        "trees_saved": {
+          "type": "number"
+        }
+      }
+    },
+    "contribution_type": {
+      "type": "string",
+      "enum": [
+        "doorstep",
+        "university_bin"
+      ]
+    }
+  },
+  "required": [
+    "user_id",
+    "waste_category",
+    "weight",
+    "points_earned",
+    "contribution_type"
+  ]
+}

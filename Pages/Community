@@ -1,0 +1,349 @@
+
+import React, { useState, useEffect } from "react";
+import { UniversityBin, User, Contribution } from "@/entities/all";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Trophy, Users, Heart, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const testimonials = [
+  {
+    name: "Sarah M.",
+    university: "Delhi University",
+    message: "DumpItUp made recycling so fun! Our college is now #1 on the leaderboard. The mascot reminders keep me motivated! 🐕💚",
+    avatar: "SM",
+    points: 2340,
+    rating: 5
+  },
+  {
+    name: "Arjun K.",
+    university: "IIT Bombay", 
+    message: "Amazing transparent pricing! I earned ₹450 last month just by recycling electronics. The pickup service is super reliable.",
+    avatar: "AK",
+    points: 1890,
+    rating: 5
+  },
+  {
+    name: "Priya T.",
+    university: "Jamia Millia",
+    message: "Love the points system! Redeemed a Zomato voucher last week. The community impact feature shows how we're helping the planet together! 🌍",
+    avatar: "PT",
+    points: 1650,
+    rating: 5
+  }
+];
+
+const impactImages = [
+  {
+    url: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&h=600&fit=crop&q=80",
+    title: "Community Cleanup Drive",
+    description: "Students from 15 universities participated in our mega cleanup"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=600&fit=crop&q=80", 
+    title: "Campus Recycling Revolution",
+    description: "Over 500kg of waste recycled through our smart bins this month"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&h=600&fit=crop&q=80",
+    title: "Eco Warriors in Action", 
+    description: "DumpItUp volunteers teaching recycling best practices"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1609102027372-8def3e3eb751?w=800&h=600&fit=crop&q=80",
+    title: "Green Campus Initiative",
+    description: "Before and after: Transforming campus waste management"
+  }
+];
+
+export default function Community() {
+  const [universities, setUniversities] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadCommunityData();
+    
+    // Auto-advance carousel
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % impactImages.length);
+    }, 5000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  const loadCommunityData = async () => {
+    try {
+      // Mock university leaderboard data since we don't have that entity yet
+      const mockUniversities = [
+        { name: "Delhi University", totalContributions: 2450, totalPoints: 24500, rank: 1, growth: "+15%" },
+        { name: "IIT Bombay", totalContributions: 2130, totalPoints: 21300, rank: 2, growth: "+12%" },
+        { name: "Jamia Millia Islamia", totalContributions: 1980, totalPoints: 19800, rank: 3, growth: "+8%" },
+        { name: "BHU Varanasi", totalContributions: 1750, totalPoints: 17500, rank: 4, growth: "+22%" },
+        { name: "JNU New Delhi", totalContributions: 1650, totalPoints: 16500, rank: 5, growth: "+5%" }
+      ];
+      setUniversities(mockUniversities);
+    } catch (error) {
+      console.error("Error loading community data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % impactImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + impactImages.length) % impactImages.length);
+  };
+
+  const getRankBadge = (rank) => {
+    const colors = {
+      1: "bg-yellow-400 text-yellow-900",
+      2: "bg-gray-300 text-gray-800", 
+      3: "bg-orange-400 text-orange-900"
+    };
+    return colors[rank] || "bg-emerald-100 text-emerald-800";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-gray-200 rounded-2xl"></div>
+          <div className="h-96 bg-gray-200 rounded-2xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center space-y-4"
+      >
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Community Impact</h1>
+        <p className="text-gray-600 text-lg">Together we're building a cleaner, greener future</p>
+        <div className="flex items-center justify-center gap-2">
+          <div className="text-4xl mascot-bounce">🐕</div>
+          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 px-4 py-2">
+            <Users className="w-4 h-4 mr-2" />
+            50,000+ Eco Warriors
+          </Badge>
+        </div>
+      </motion.div>
+
+      <Tabs defaultValue="leaderboard" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 bg-emerald-50">
+          <TabsTrigger value="leaderboard" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <Trophy className="w-4 h-4 mr-2" />
+            College Leaderboard
+          </TabsTrigger>
+          <TabsTrigger value="testimonials" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <Heart className="w-4 h-4 mr-2" />
+            User Stories
+          </TabsTrigger>
+          <TabsTrigger value="impact" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <Star className="w-4 h-4 mr-2" />
+            Our Impact
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="leaderboard" className="space-y-6">
+          <Card className="glass-effect border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-amber-500" />
+                University Rankings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {universities.map((university, index) => (
+                  <motion.div
+                    key={university.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all duration-300"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Badge className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${getRankBadge(university.rank)}`}>
+                        #{university.rank}
+                      </Badge>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{university.name}</h3>
+                        <p className="text-sm text-gray-600">{university.totalContributions} contributions this month</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-emerald-600">{university.totalPoints.toLocaleString()} points</div>
+                      <div className="text-sm text-emerald-500">{university.growth} growth</div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-emerald-600 mb-2">50+</div>
+                <p className="text-emerald-700 font-medium">Participating Universities</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">15,000kg</div>
+                <p className="text-blue-700 font-medium">Waste Recycled This Month</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-amber-600 mb-2">₹2.5L</div>
+                <p className="text-amber-700 font-medium">Earned by Students</p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="testimonials" className="space-y-6">
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <motion.div
+                key={testimonial.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <Card className="glass-effect border-0 h-full">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center font-bold text-emerald-600">
+                        {testimonial.avatar}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{testimonial.name}</h3>
+                        <p className="text-sm text-gray-600">{testimonial.university}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed mb-4">{testimonial.message}</p>
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-emerald-100 text-emerald-700">
+                        {testimonial.points} points
+                      </Badge>
+                      <span className="text-xs text-gray-500">Verified Student</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="impact" className="space-y-6">
+          <Card className="glass-effect border-0 overflow-hidden">
+            <CardHeader>
+              <CardTitle>Community in Action</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="relative w-full h-[300px] sm:h-[400px] md:h-[450px] lg:h-[550px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0, x: 300 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -300 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0"
+                  >
+                    <img
+                      src={impactImages[currentImageIndex].url}
+                      alt={impactImages[currentImageIndex].title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+                      <div className="absolute bottom-6 left-6 text-white">
+                        <h3 className="text-xl md:text-2xl font-bold mb-2">{impactImages[currentImageIndex].title}</h3>
+                        <p className="text-sm md:text-base text-gray-200">{impactImages[currentImageIndex].description}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+                
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+                
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {impactImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <div className="text-4xl mb-3">🌍</div>
+              <div className="text-3xl font-bold text-green-600 mb-2">50,000+</div>
+              <p className="text-green-700 font-medium">Happy Users</p>
+            </Card>
+            <Card className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <div className="text-4xl mb-3">♻️</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">500T</div>
+              <p className="text-blue-700 font-medium">Waste Recycled</p>
+            </Card>
+            <Card className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <div className="text-4xl mb-3">🏆</div>
+              <div className="text-3xl font-bold text-purple-600 mb-2">50+</div>
+              <p className="text-purple-700 font-medium">Partner Universities</p>
+            </Card>
+            <Card className="text-center p-6 bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+              <div className="text-4xl mb-3">💰</div>
+              <div className="text-3xl font-bold text-amber-600 mb-2">₹10L+</div>
+              <p className="text-amber-700 font-medium">Earned by Students</p>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="text-center py-8 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-3xl border border-emerald-200"
+      >
+        <div className="text-4xl mb-4 mascot-bounce">🐕</div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Join the Movement!</h3>
+        <p className="text-gray-600">Be part of the largest student-led recycling community in India</p>
+      </motion.div>
+    </div>
+  );
+}
